@@ -1,0 +1,13 @@
+#!/bin/bash
+#PBS -P on41
+#PBS -q normal
+#PBS -l walltime=02:00:00
+#PBS -l mem=4GB
+#PBS -l jobfs=4GB
+#PBS -l ncpus=1
+#PBS -l software=g16
+#PBS -l wd
+
+module load gaussian
+
+g16 {file_name}.gjf

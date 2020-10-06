@@ -1,0 +1,9 @@
+# wB97XD/Gen Freq=(Anharmonic,ReadAnharm) Opt=(VeryTight,CalcAll) Int=Ultrafine
+
+VPT2 Anharmonic  Frequencies for {molecule} using the wB97X-D/def2-SVPD Model Chemistry
+
+{geometry}
+{def2_basis}
+
+PT2Model=GVPT2
+
