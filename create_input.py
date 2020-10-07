@@ -446,6 +446,7 @@ with open('molecules.txt','r') as inp_molecules:
         
         # Replaces the selected keywords (i.e. {molecule}, {geometry} and {def2_basis}) with the
         # corresponding values.
+        # https://www.kite.com/python/answers/how-to-update-and-replace-text-in-a-file-in-python
         with open(molecule.rstrip()+'_wB97XD_def2_harmonic.gjf','r+') as inp_template:
             template_data = inp_template.read()
             template_data = re.sub('{geometry}', geom_data, template_data)
