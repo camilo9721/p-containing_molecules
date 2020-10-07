@@ -1,4 +1,4 @@
-# CODE FOR OBTAINING XYZ COORDINATES AND Z-MATRIX
+# LAST VERSION OF THE CODE FOR OBTAINING XYZ COORDINATES AND Z-MATRIX 07.10.2020
 
 from chemml.chem import Molecule
 import chemcoord as cc
@@ -10,35 +10,59 @@ import time
 # XYZ COORDINTES
 # ------------------
 
-# Loads the csv file
 test_case = pd.read_csv('test_case.csv')
+all_molecules = []
 
 for smiles, formula in zip(test_case['SMILES'], test_case['Formula']):
     
-    # These three lines read the SMILES input, add the hydrogens to the structure and
-    # optimise the geomtry to obtain the xyz coordintes.
+    # These three lines read the SMILES input, add the hydrogens to structure and
+    # optimise the geomtry to obtain the XYZ coordintes.
     mol = Molecule(smiles, input_type = 'smiles')
     mol.hydrogens('add')
     mol.to_xyz('UFF')
     
     # This final array merges and organises the atomic symbols and geometries properly
-    # as the initial versions are separeted
+    # as the initial versions are separeted.
     final_array = np.column_stack((mol.xyz.atomic_symbols, mol.xyz.geometry))
     
-    # Prints the geometries into xyz files named after the molecular formula for each compound
-    # Anna's contribution
+    # Anna's contribution.
+    # Prints the geometries into XYZ files named after the molecular formula for each compound, considering isomers.
     # https://stackoverflow.com/questions/5914627/prepend-line-to-beginning-of-a-file
     # https://stackoverflow.com/questions/12309976/how-do-i-convert-a-list-into-a-string-with-spaces-in-python/12309982
-    with open(formula+'.xyz', 'a') as inp:
-        inp.write(str('atom'+'\t x'+'\t\t\t y'+'\t\t\t z')+'\n\n')
-        for row in final_array:
-            print('\t'.join(map(str, row)), file = inp)
+    
+    # If the molecular formula is unique, the XYZ file will be naed after the formula (e.g. PH3.xyz)
+    if formula not in all_molecules:
+        isomers = 0
+        all_molecules.append(formula)
+        with open(formula+'.xyz', 'a') as inp:
+            inp.write(str('atom'+'\t x'+'\t\t\t y'+'\t\t\t z')+'\n\n')
+            for row in final_array:
+                print('\t'.join(map(str, row)), file = inp)
 
+    # If there are multiple entries with the same formula, i.e. isomers, the XYZ file will be named according with
+    # the number of isomers present, e.g. C2H5P.xyz, C2H5P_1.xyz, C2H5P_2.xyz, etc.
+    else:
+        isomers = isomers + 1
+        all_molecules.append(formula+'_'+str(isomers))
+        with open(formula+'_'+str(isomers)+'.xyz', 'a') as inp:
+            inp.write(str('atom'+'\t x'+'\t\t\t y'+'\t\t\t z')+'\n\n')
+            for row in final_array:
+                print('\t'.join(map(str, row)), file = inp)
+
+# Writes the molecular_reference.txt file that contains the file names along with the SMILES code, in order to
+# have track of the molecular identities.
+for file_name, smiles_code in zip(all_molecules, test_case['SMILES']):
+    print(file_name+','+smiles_code, file = open('molecular_reference.txt', 'a'))
+                
 # ---------
 # Z-MATRIX
-# ---------
+# ---------                
 
-for name in test_case['Formula']:
+# The list all_molecules, created along with the XYZ coordintes, contains the names of all .XYZ files, including
+# the the counting for isomers. All these names are used to read the XYZ coordinates and create the
+# appropriate Z-matrix.
+
+for name in all_molecules:
     
     atoms = []
     bonds = ['']
@@ -83,5 +107,5 @@ for name in test_case['Formula']:
 
 # Writes a molecules.txt file listing all molecules for which geometries have been generated.
 # This file is needed for running the input files templates from the run_gaussian.sh code.
-for formula in test_case['Formula']:
+for formula in all_molecules:
     print(formula, file = open('molecules.txt', 'a'))
