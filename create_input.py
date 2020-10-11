@@ -2,7 +2,7 @@
 # The code for generating the input file is down below this dictionary.
 # https://stackoverflow.com/questions/61465411/save-a-multiple-lines-in-a-dict-in-python-question
 def2SVPD_basis = {
-    'H' : r"""H     0
+    1 : r"""H     0
 S   3   1.00
      13.0107010              0.19682158D-01
       1.9622572              0.13796524
@@ -14,7 +14,7 @@ P   1   1.00
 P   1   1.00
       0.11704099050          1.0000000
 ****""",
-    'C' : r"""C     0
+    6 : r"""C     0
 S   5   1.00
    1238.4016938              0.54568832082D-02
     186.29004992             0.40638409211D-01
@@ -38,7 +38,7 @@ D   1   1.00
 D   1   1.00
       0.11713185140          1.0000000
 ****""",
-    'N' : r"""N     0
+    7 : r"""N     0
 S   5   1.00
    1712.8415853             -0.53934125305D-02
     257.64812677            -0.40221581118D-01
@@ -62,7 +62,7 @@ D   1   1.00
 D   1   1.00
       0.16697708112          1.0000000
 ****""",
-    'O' : r"""O     0
+    8 : r"""O     0
 S   5   1.00
    2266.1767785             -0.53431809926D-02
     340.87010191            -0.39890039230D-01
@@ -88,7 +88,7 @@ D   1   1.00
 D   1   1.00
       0.17992024323          1.0000000
 ****""",
-    'F' : r"""F     0
+    9 : r"""F     0
 S   5   1.00
    2894.8325990             -0.53408255515D-02
     435.41939120            -0.39904258866D-01
@@ -114,7 +114,7 @@ D   1   1.00
 D   1   1.00
       0.22301361948          1.0000000
 ****""",
-    'P' : r"""P     0
+    15 : r"""P     0
 S   5   1.00
    8002.4795106              0.57503489302D-02
    1203.6813590              0.43007628959D-01
@@ -146,7 +146,7 @@ D   1   1.00
 D   1   1.00
       0.99587311089D-01      1.0000000
 ****""",
-    'S' : r"""S     0
+    16 : r"""S     0
 S   5   1.00
    9184.9303010             -0.22294387756D-02
    1381.5105503             -0.16683029937D-01
@@ -180,7 +180,7 @@ D   1   1.00
 D   1   1.00
       0.10172853717          1.0000000
 ****""",
-    'Cl' : r"""Cl     0
+    17 : r"""Cl     0
 S   5   1.00
   10449.8275660              0.19708362484D-02
    1571.7365221              0.14754727977D-01
@@ -214,7 +214,7 @@ D   1   1.00
 D   1   1.00
       0.12284803390          1.0000000
 ****""",
-    'Se' : r"""Se     0
+    34 : r"""Se     0
 S   6   1.00
  106612.2002700              0.14274889113D-02
   16007.6047010              0.10943525114D-01
@@ -264,7 +264,7 @@ D   1   1.00
 D   1   1.00
       0.82767380906D-01      1.0000000
 ****""",
-    'Br' : r""" Br     0
+    35 : r"""Br     0
 S   6   1.00
  113286.3877600              0.14283037779D-02
   17009.6263030              0.10950417496D-01
@@ -314,7 +314,7 @@ D   1   1.00
 D   1   1.00
       0.96543342393D-01      1.0000000
 ****""",
-    'I' : r"""I     0
+    53 : r"""I     0
 S   6   1.00
     445.90489176             0.20037290389D-02
      23.336842412           -0.14989397324
@@ -394,24 +394,28 @@ d-f potential
 2     19.45860900            21.84204000
 2     19.34926000            28.46819100
 2      4.82376700             0.24371300
-2      4.88431500             0.32080400"""
+2      4.88431500             0.32080400
+****"""
 }
 
+# LAST VERSION 11.10.2020
 
 # ------------------------------------------
 # CODE FOR AUTOMATING INPUT FILE GENERATION
 # ------------------------------------------
 
+# This code only works for the wB97X-D/def2-SVPD model chemistry.
+
 # To run this script the following files are needed:
     # - molecules.txt: contains a list with all molecules that will be considering
-    # - harmonic_def2.gjf: input file template for harmonic jobs with wB97X-D/def2-SVPD model chemistry in Gaussian
+    # - vpt2_def2.gjf: input file template for VPT2 jobs with wB97X-D/def2-SVPD model chemistry in Gaussian
     # - subtem.pbs: template submission file
     # - geomtries folder: constains all geometries (in z-matrix) for the molecules listed in molecules.txt
 
 import os
 import re
 import shutil
-
+from mendeleev import element
 
 # Creates outputs folder
 # https://stackabuse.com/creating-and-deleting-directories-with-python/
@@ -422,32 +426,47 @@ with open('molecules.txt','r') as inp_molecules:
     for molecule in inp_molecules:
         
         basis_data = []
+        elements_list = []
+        atomic_numbers = []
         basis_str = ''
         
         # Moves to outputs folder and copies the template file, changing its name to the one
         # for the molecule being considered.
         # https://thispointer.com/python-how-to-copy-files-from-one-location-to-another-using-shutil-copy/
         os.chdir('outputs')
-        shutil.copy('../harmonic_def2.gjf', molecule.rstrip()+'_wB97XD_def2_harmonic.gjf')
+        shutil.copy('../vpt2_def2.gjf', molecule.rstrip()+'_vpt2.gjf')
         
-        # Reads the elements present in the molecule and saves the def2-SVPD basis set for those elements only
-        # in the basis_data list. Then this list is converted to str and saved in the basis_str variable
-        # to be used later in the code.
-        for element in molecule:
-            if element.isalpha() and element in def2SVPD_basis:
-                basis_data.append(def2SVPD_basis[element])
+        # Reads the elements present in the molecular formula and saves them into the elemens_list.
+        for letter in re.findall('[A-Z][^A-Z]*', molecule.rstrip()):
+            new_el = re.split(r'[0-9]', letter.split()[0])[0]
+            elements_list.append(new_el)
         
+        # Creates a new list where stores the atomic numbers for each element present in the molecular formula.
+        # The list is then sorted from the smallers to the largest value.
+        for atom in elements_list:
+            identity = element(atom)
+            atomic_numbers.append(identity.atomic_number)
+            
+        atomic_numbers.sort()
+        
+        # Reads over each atomic number and saves the corresponding basis set for each element in the basis_data list.
+        # The basis_data is organised with increasing atomic number, as required by Gaussian for the input file.
+        for number in atomic_numbers:
+            if number in def2SVPD_basis:
+                basis_data.append(def2SVPD_basis[number])
+                
+        # The basis is joined into a single string to be pasted in the input file template.
         basis_str = '\n'.join(basis_data)
         
         # Saves the info for the respective geometry into the geom_data list.
-        with open('../geometries/'+molecule.rstrip()+'.zmax','r') as inp_geom:
+        with open('../geom_3_9_zmax/'+molecule.rstrip()+'.zmax','r') as inp_geom:
             geom_data = inp_geom.read()
             inp_geom.close()
         
         # Replaces the selected keywords (i.e. {molecule}, {geometry} and {def2_basis}) with the
         # corresponding values.
         # https://www.kite.com/python/answers/how-to-update-and-replace-text-in-a-file-in-python
-        with open(molecule.rstrip()+'_wB97XD_def2_harmonic.gjf','r+') as inp_template:
+        with open(molecule.rstrip()+'_vpt2.gjf','r+') as inp_template:
             template_data = inp_template.read()
             template_data = re.sub('{geometry}', geom_data, template_data)
             template_data = re.sub('{molecule}', molecule.rstrip(), template_data)
@@ -459,10 +478,10 @@ with open('molecules.txt','r') as inp_molecules:
             inp_template.truncate()
         
         # Copies submission file template and pastes the appropriate input file name.
-        shutil.copy('../subtem.pbs', molecule.rstrip()+'_wB97XD_def2_harmonic.pbs')
-        with open(molecule.rstrip()+'_wB97XD_def2_harmonic.pbs','r+') as inp_sub:
+        shutil.copy('../subtem.pbs', molecule.rstrip()+'_vpt2.pbs')
+        with open(molecule.rstrip()+'_vpt2.pbs','r+') as inp_sub:
             submission_data = inp_sub.read()
-            submission_data = re.sub('{file_name}', molecule.rstrip()+'_wB97XD_def2_harmonic', submission_data)
+            submission_data = re.sub('{file_name}', molecule.rstrip()+'_vpt2', submission_data)
             
             inp_sub.seek(0)
             inp_sub.write(submission_data)
