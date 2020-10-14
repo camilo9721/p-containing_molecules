@@ -398,8 +398,6 @@ d-f potential
 ****"""
 }
 
-# LAST VERSION 11.10.2020
-
 # ------------------------------------------
 # CODE FOR AUTOMATING INPUT FILE GENERATION
 # ------------------------------------------
@@ -417,6 +415,8 @@ import re
 import shutil
 from mendeleev import element
 
+failed_jobs = []
+
 # Creates outputs folder
 # https://stackabuse.com/creating-and-deleting-directories-with-python/
 os.mkdir('outputs')
@@ -425,66 +425,72 @@ os.mkdir('outputs')
 with open('molecules.txt','r') as inp_molecules:
     for molecule in inp_molecules:
         
-        basis_data = []
-        elements_list = []
-        atomic_numbers = []
-        basis_str = ''
-        
-        # Moves to outputs folder and copies the template file, changing its name to the one
-        # for the molecule being considered.
-        # https://thispointer.com/python-how-to-copy-files-from-one-location-to-another-using-shutil-copy/
-        os.chdir('outputs')
-        shutil.copy('../vpt2_def2.gjf', molecule.rstrip()+'_vpt2.gjf')
-        
-        # Reads the elements present in the molecular formula and saves them into the elemens_list.
-        for letter in re.findall('[A-Z][^A-Z]*', molecule.rstrip()):
-            new_el = re.split(r'[0-9]', letter.split()[0])[0]
-            elements_list.append(new_el)
-        
-        # Creates a new list where stores the atomic numbers for each element present in the molecular formula.
-        # The list is then sorted from the smallers to the largest value.
-        for atom in elements_list:
-            identity = element(atom)
-            atomic_numbers.append(identity.atomic_number)
+        try:
             
-        atomic_numbers.sort()
+            basis_data = []
+            elements_list = []
+            atomic_numbers = []
+            basis_str = ''
         
-        # Reads over each atomic number and saves the corresponding basis set for each element in the basis_data list.
-        # The basis_data is organised with increasing atomic number, as required by Gaussian for the input file.
-        for number in atomic_numbers:
-            if number in def2SVPD_basis:
-                basis_data.append(def2SVPD_basis[number])
+            # Moves to outputs folder and copies the template file, changing its name to the one
+            # for the molecule being considered.
+            # https://thispointer.com/python-how-to-copy-files-from-one-location-to-another-using-shutil-copy/
+            os.chdir('outputs')
+            shutil.copy('../vpt2_def2.gjf', molecule.rstrip()+'_vpt2.gjf')
+        
+            # Reads the elements present in the molecular formula and saves them into the elemens_list.
+            for letter in re.findall('[A-Z][^A-Z]*', molecule.rstrip()):
+                symbol = re.split(r'[0-9]', letter.split()[0])[0]
+                poss_under = re.split(r'(_)', symbol.split()[0])[0]
+                elements_list.append(poss_under)
+        
+            # Creates a new list where stores the atomic numbers for each element present in the molecular formula.
+            # The list is then sorted from the smallers to the largest value.
+            for atom in elements_list:
+                symbol = element(atom)
+                atomic_numbers.append(symbol.atomic_number)
+            
+            atomic_numbers.sort()
+        
+            # Reads over each atomic number and saves the corresponding basis set for each element in the basis_data list.
+            # The basis_data is organised with increasing atomic number, as required by Gaussian for the input file.
+            for number in atomic_numbers:
+                if number in def2SVPD_basis:
+                    basis_data.append(def2SVPD_basis[number])
                 
-        # The basis is joined into a single string to be pasted in the input file template.
-        basis_str = '\n'.join(basis_data)
+            # The basis is joined into a single string to be pasted in the input file template.
+            basis_str = '\n'.join(basis_data)
         
-        # Saves the info for the respective geometry into the geom_data list.
-        with open('../geom_3_9_zmax/'+molecule.rstrip()+'.zmax','r') as inp_geom:
-            geom_data = inp_geom.read()
-            inp_geom.close()
+            # Saves the info for the respective geometry into the geom_data list.
+            with open('../10_nISeBr/'+molecule.rstrip()+'.zmax','r') as inp_geom:
+                geom_data = inp_geom.read()
+                inp_geom.close()
         
-        # Replaces the selected keywords (i.e. {molecule}, {geometry} and {def2_basis}) with the
-        # corresponding values.
-        # https://www.kite.com/python/answers/how-to-update-and-replace-text-in-a-file-in-python
-        with open(molecule.rstrip()+'_vpt2.gjf','r+') as inp_template:
-            template_data = inp_template.read()
-            template_data = re.sub('{geometry}', geom_data, template_data)
-            template_data = re.sub('{molecule}', molecule.rstrip(), template_data)
-            template_data = re.sub('{def2_basis}', basis_str, template_data)
+            # Replaces the selected keywords (i.e. {molecule}, {geometry} and {def2_basis}) with the
+            # corresponding values.
+            # https://www.kite.com/python/answers/how-to-update-and-replace-text-in-a-file-in-python
+            with open(molecule.rstrip()+'_vpt2.gjf','r+') as inp_template:
+                template_data = inp_template.read()
+                template_data = re.sub('{geometry}', geom_data, template_data)
+                template_data = re.sub('{molecule}', molecule.rstrip(), template_data)
+                template_data = re.sub('{def2_basis}', basis_str, template_data)
 
-            # writes the new templates.
-            inp_template.seek(0)
-            inp_template.write(template_data)
-            inp_template.truncate()
+                # writes the new templates.
+                inp_template.seek(0)
+                inp_template.write(template_data)
+                inp_template.truncate()
         
-        # Copies submission file template and pastes the appropriate input file name.
-        shutil.copy('../subtem.pbs', molecule.rstrip()+'_vpt2.pbs')
-        with open(molecule.rstrip()+'_vpt2.pbs','r+') as inp_sub:
-            submission_data = inp_sub.read()
-            submission_data = re.sub('{file_name}', molecule.rstrip()+'_vpt2', submission_data)
+            # Copies submission file template and pastes the appropriate input file name.
+            shutil.copy('../subtem.pbs', molecule.rstrip()+'_vpt2.pbs')
+            with open(molecule.rstrip()+'_vpt2.pbs','r+') as inp_sub:
+                submission_data = inp_sub.read()
+                submission_data = re.sub('{file_name}', molecule.rstrip()+'_vpt2', submission_data)
             
-            inp_sub.seek(0)
-            inp_sub.write(submission_data)
-            inp_sub.truncate()
+                inp_sub.seek(0)
+                inp_sub.write(submission_data)
+                inp_sub.truncate()
+                
+        except:
+            failed_jobs.append(molecule.rstrip())
             
         os.chdir('../')
