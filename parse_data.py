@@ -4,8 +4,6 @@
 
 import sys
 
-import sys
-
 # Stores the file name into a variable and then opens that file.
 filename = sys.argv[1]
 with open('{0}'.format(filename), 'r') as inp:
