@@ -4,6 +4,8 @@
 
 import sys
 
+import sys
+
 # Stores the file name into a variable and then opens that file.
 filename = sys.argv[1]
 with open('{0}'.format(filename), 'r') as inp:
@@ -70,7 +72,18 @@ with open('{0}'.format(filename), 'r') as inp:
             anints_fund_index = splitted_line.index('I(anharm)')
         else:
             ints_fund.append(line.split()[anints_fund_index])
-    
+
+    # Gets scaled fundamentals (scaling factor for wB97X-D/def2-SVPD is 0.9542 ref. 15KeBrMa)
+    modes_fund_kind_scaled = []
+    modes_fund_scaled = []
+    freqs_fund_scaled = []
+    ints_fund_scaled = []
+    for kind_s,mode_s,harm_freq_s,harm_int_s in zip(modes_fund_kind,modes_fund,freqs_fund,ints_fund):
+        if kind_s == 'FundHarmonic':
+            modes_fund_kind_scaled.append('FundScaled')
+            modes_fund_scaled.append(mode_s)
+            freqs_fund_scaled.append(str(float(harm_freq_s)*0.9542))
+            ints_fund_scaled.append(harm_int_s)
         
     # Gets overtones info.
     overtones = []
@@ -160,10 +173,10 @@ with open('{0}'.format(filename), 'r') as inp:
         modes_cb_kind.append('CombBand')
     
 # Gets all the information together
-all_kinds = modes_fund_kind + modes_overt_kind + modes_cb_kind
-all_modes = modes_fund + modes_overt + modes_cb_tot
-all_freqs = freqs_fund + freqs_overt + freqs_cb
-all_ints = ints_fund + ints_overt + ints_cb
+all_kinds = modes_fund_kind + modes_fund_kind_scaled + modes_overt_kind + modes_cb_kind
+all_modes = modes_fund + modes_fund_scaled + modes_overt + modes_cb_tot
+all_freqs = freqs_fund + freqs_fund_scaled + freqs_overt + freqs_cb
+all_ints = ints_fund + ints_fund_scaled + ints_overt + ints_cb
 
 # Removes the comma form the modes notation and creates a list with the molecular formula for all
 # frequencies and intensities being considered.
