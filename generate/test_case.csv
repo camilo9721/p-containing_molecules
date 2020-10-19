@@ -1,0 +1,7 @@
+Formula,SMILES,Tot_atoms,Tot_nH_atoms,Dataset_no,Molecular_weight,IUPAC_chemname,Metalloid,EPISUITE,InChI_Code,InChI_Key,Boiling_Point,BP_basis,EPIsuite_output,MP,Basis,Life
+H3P,P,4,1,19,33.9978,phosphane,N,P,InChI=1S/H3P/h1H3,InChIKey=XYFCBTPGUUZFHI-UHFFFAOYSA-N,-87.25,Ex,   468.18(BP est)    162.02(MP est)    -87.70(BP exp)   -133.00(MP exp)  P ,-133,Expt,Y
+HOP,P=O,3,2,66,47.9808,oxophosphane,N,P=O,InChI=1S/HOP/c1-2/h2H,InChIKey=AUONHKJOIZSQGR-UHFFFAOYSA-N,1.951020147,Pr,   480.00(BP est)     90.27(MP est)      ----(BP exp)      ----(MP exp)  P=O ,90.27,Pred,N
+CH5P,CP,7,2,68,48.0248,methylphosphane,N,CP,"InChI=1S/CH5P/c1-2/h2H2,1H3",InChIKey=SAWKFRBJGLMMES-UHFFFAOYSA-N,-17.1,Ex,     6.93(BP est)   -125.19(MP est)      ----(BP exp)      ----(MP exp)  CP ,-125.19,Pred,N
+H4NP,NP,6,2,72,49.0128,phosphanamine,N,NP,InChI=1S/H4NP/c1-2/h1-2H2,InChIKey=XQJHRCVXRAJIDY-UHFFFAOYSA-N,41.10012106,Pr,   497.87(BP est)    195.11(MP est)      ----(BP exp)      ----(MP exp)  NP ,195.11,Pred,N
+H3OP,[H][P]([H])([H])=O,5,2,14947,49.9968,phosphine oxide,N,O=P,InChI=1S/H3OP/c1-2/h2H3,InChIKey=MPQXHAGKBWFSNV-UHFFFAOYSA-N,1.889153287,Pr,   480.00(BP est)     90.27(MP est)      ----(BP exp)      ----(MP exp)  O=P ,90.27,Pred,N
+C2H5P,P1CC1,8,3,208,60.0358,phosphirane,N,P1CC1,"InChI=1S/C2H5P/c1-2-3-1/h3H,1-2H2",InChIKey=UTMQOVWWMLZKRY-UHFFFAOYSA-N,20.71,Pr,    20.71(BP est)   -110.86(MP est)      ----(BP exp)      ----(MP exp)  P1CC1 ,-110.86,Pred,N
